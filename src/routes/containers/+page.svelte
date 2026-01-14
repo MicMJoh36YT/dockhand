@@ -234,6 +234,10 @@
 	let batchUpdateContainerIds = $state<string[]>([]);
 	let batchUpdateContainerNames = $state<Map<string, string>>(new Map());
 
+	// Single container update mode (doesn't overwrite batch list)
+	let singleUpdateContainerId = $state<string | null>(null);
+	let singleUpdateContainerName = $state<string | null>(null);
+
 	// Operation error state
 	let operationError = $state<{ id: string; message: string } | null>(null);
 
@@ -459,13 +463,16 @@
 	}
 
 	function updateSingleContainer(containerId: string, containerName: string) {
-		batchUpdateContainerIds = [containerId];
-		batchUpdateContainerNames = new Map([[containerId, containerName]]);
+		// Use single-container mode to avoid overwriting the batch list
+		singleUpdateContainerId = containerId;
+		singleUpdateContainerName = containerName;
 		showBatchUpdateModal = true;
 	}
 
 	function handleBatchUpdateClose() {
 		showBatchUpdateModal = false;
+		singleUpdateContainerId = null;
+		singleUpdateContainerName = null;
 		updateCheckStatus = 'idle';
 	}
 
@@ -481,13 +488,12 @@
 		}
 		selectedContainers = new Set();
 
-		// Keep blocked containers in the update list - they still have updates available
-		// Only remove successfully updated containers
-		const successSet = new Set(results.success);
-		batchUpdateContainerIds = batchUpdateContainerIds.filter(id => !successSet.has(id));
-		for (const id of results.success) {
-			batchUpdateContainerNames.delete(id);
-		}
+		// Clear single-update mode
+		singleUpdateContainerId = null;
+		singleUpdateContainerName = null;
+
+		// Reload pending updates from database to restore highlighting for remaining containers
+		loadPendingUpdates();
 
 		fetchContainers();
 	}
@@ -2137,8 +2143,8 @@
 
 <BatchUpdateModal
 	bind:open={showBatchUpdateModal}
-	containerIds={batchUpdateContainerIds}
-	containerNames={batchUpdateContainerNames}
+	containerIds={singleUpdateContainerId ? [singleUpdateContainerId] : batchUpdateContainerIds}
+	containerNames={singleUpdateContainerId && singleUpdateContainerName ? new Map([[singleUpdateContainerId, singleUpdateContainerName]]) : batchUpdateContainerNames}
 	{envId}
 	vulnerabilityCriteria={envHasScanning ? envVulnerabilityCriteria : 'never'}
 	onClose={handleBatchUpdateClose}

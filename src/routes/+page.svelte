@@ -12,7 +12,7 @@
 	import DraggableGrid, { type GridItemLayout } from './dashboard/DraggableGrid.svelte';
 	import { dashboardPreferences, dashboardData, GRID_COLS, GRID_ROW_HEIGHT, type TileItem } from '$lib/stores/dashboard';
 	import { currentEnvironment } from '$lib/stores/environment';
-	import { IsMobile } from '$lib/hooks/is-mobile.svelte.js';
+	import { IsMobile } from '$lib/hooks/is-mobile.svelte';
 	import type { EnvironmentStats } from './api/dashboard/stats/+server';
 	import { getLabelColor, getLabelBgColor } from '$lib/utils/label-colors';
 

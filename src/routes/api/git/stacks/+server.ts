@@ -13,6 +13,9 @@ import { authorize } from '$lib/server/authorize';
 import { registerSchedule } from '$lib/server/scheduler';
 import { secureRandomBytes } from '$lib/server/crypto-fallback';
 
+// Stack name validation: must start with alphanumeric, can contain alphanumeric, hyphens, underscores
+const STACK_NAME_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
+
 export const GET: RequestHandler = async ({ url, cookies }) => {
 	const auth = await authorize(cookies);
 
@@ -47,6 +50,11 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
 		if (!data.stackName || typeof data.stackName !== 'string') {
 			return json({ error: 'Stack name is required' }, { status: 400 });
+		}
+
+		const trimmedStackName = data.stackName.trim();
+		if (!STACK_NAME_REGEX.test(trimmedStackName)) {
+			return json({ error: 'Stack name must start with a letter or number, and contain only letters, numbers, hyphens, and underscores' }, { status: 400 });
 		}
 
 		// Either repositoryId or new repo details (url, branch) must be provided
@@ -98,7 +106,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		}
 
 		const gitStack = await createGitStack({
-			stackName: data.stackName,
+			stackName: trimmedStackName,
 			environmentId: data.environmentId || null,
 			repositoryId: repositoryId,
 			composePath: data.composePath || 'docker-compose.yml',
@@ -112,7 +120,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
 		// Create stack_sources entry so the stack appears in the list immediately
 		await upsertStackSource({
-			stackName: data.stackName,
+			stackName: trimmedStackName,
 			environmentId: data.environmentId || null,
 			sourceType: 'git',
 			gitRepositoryId: repositoryId,

@@ -12,7 +12,7 @@
 	import { SidebarProvider, SidebarTrigger } from '$lib/components/ui/sidebar';
 	import { startStatsCollection, stopStatsCollection } from '$lib/stores/stats';
 	import { connectSSE, disconnectSSE } from '$lib/stores/events';
-	import { currentEnvironment } from '$lib/stores/environment';
+	import { currentEnvironment, environments } from '$lib/stores/environment';
 	import { licenseStore, daysUntilExpiry } from '$lib/stores/license';
 	import { authStore } from '$lib/stores/auth';
 	import { themeStore, applyTheme } from '$lib/stores/theme';
@@ -48,6 +48,18 @@
 			// Use user-specific preferences if authenticated, otherwise global settings
 			const userId = $authStore.authEnabled && $authStore.user ? $authStore.user.id : undefined;
 			themeStore.init(userId);
+		}
+	});
+
+	// Refresh environments when user becomes authenticated
+	// This handles OIDC callback where login happens server-side
+	let wasAuthenticated = $state(false);
+	$effect(() => {
+		if (!$authStore.loading && $authStore.authenticated && !wasAuthenticated) {
+			environments.refresh();
+		}
+		if (!$authStore.loading) {
+			wasAuthenticated = $authStore.authenticated;
 		}
 	});
 

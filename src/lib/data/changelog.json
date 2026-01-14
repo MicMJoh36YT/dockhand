@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.0.8",
+    "date": "2026-01-13",
+    "changes": [
+      { "type": "fix", "text": "Fix imported stack working directory for relative volume paths" },
+      { "type": "fix", "text": "Fix environment refresh after auth login" },
+      { "type": "fix", "text": "Fix single container update clearing up all update badges" },
+      { "type": "fix", "text": "Fix code editor paste issue on Safari on iPad" },
+      { "type": "fix", "text": "Fix registry login failing due to Bun stdin API incompatibility" },
+      { "type": "fix", "text": "Fix env var editor focus issues" },
+      { "type": "fix", "text": "Fix git stack naming issues: validation, rename sync, and delete cleanup" }
+    ],
+    "imageTag": "fnsys/dockhand:v1.0.8"
+  },
+  {
     "version": "1.0.7",
     "date": "2026-01-06",
     "comingSoon": false,

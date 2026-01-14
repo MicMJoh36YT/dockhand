@@ -1,9 +1,12 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getGitStack, updateGitStack, deleteGitStack } from '$lib/server/db';
+import { getGitStack, updateGitStack, deleteGitStack, deleteStackSource, updateStackSourceName } from '$lib/server/db';
 import { deleteGitStackFiles, deployGitStack } from '$lib/server/git';
 import { authorize } from '$lib/server/authorize';
 import { registerSchedule, unregisterSchedule } from '$lib/server/scheduler';
+
+// Stack name validation: must start with alphanumeric, can contain alphanumeric, hyphens, underscores
+const STACK_NAME_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
 
 export const GET: RequestHandler = async ({ params, cookies }) => {
 	const auth = await authorize(cookies);
@@ -43,6 +46,20 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
 		}
 
 		const data = await request.json();
+
+		// Validate stack name if it's being changed
+		if (data.stackName !== undefined) {
+			const trimmedStackName = data.stackName.trim();
+			if (!trimmedStackName) {
+				return json({ error: 'Stack name is required' }, { status: 400 });
+			}
+			if (!STACK_NAME_REGEX.test(trimmedStackName)) {
+				return json({ error: 'Stack name must start with a letter or number, and contain only letters, numbers, hyphens, and underscores' }, { status: 400 });
+			}
+			data.stackName = trimmedStackName;
+		}
+
+		const oldStackName = existing.stackName;
 		const updated = await updateGitStack(id, {
 			stackName: data.stackName,
 			composePath: data.composePath,
@@ -53,6 +70,11 @@ export const PUT: RequestHandler = async ({ params, request, cookies }) => {
 			webhookEnabled: data.webhookEnabled,
 			webhookSecret: data.webhookSecret
 		});
+
+		// If stack name changed, update the stack_sources record too
+		if (data.stackName && data.stackName !== oldStackName) {
+			await updateStackSourceName(oldStackName, data.stackName, existing.environmentId);
+		}
 
 		// Register or unregister schedule with croner
 		if (updated.autoUpdate && updated.autoUpdateCron) {
@@ -100,6 +122,9 @@ export const DELETE: RequestHandler = async ({ params, cookies }) => {
 
 		// Delete git files first
 		deleteGitStackFiles(id);
+
+		// Delete the stack_sources record to free up the stack name
+		await deleteStackSource(existing.stackName, existing.environmentId);
 
 		// Delete from database
 		await deleteGitStack(id);

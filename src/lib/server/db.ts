@@ -2643,6 +2643,25 @@ export async function deleteStackSource(stackName: string, environmentId?: numbe
 	return true;
 }
 
+export async function updateStackSourceName(
+	oldStackName: string,
+	newStackName: string,
+	environmentId?: number | null
+): Promise<boolean> {
+	await db.update(stackSources)
+		.set({
+			stackName: newStackName,
+			updatedAt: new Date().toISOString()
+		})
+		.where(and(
+			eq(stackSources.stackName, oldStackName),
+			environmentId !== undefined && environmentId !== null
+				? eq(stackSources.environmentId, environmentId)
+				: isNull(stackSources.environmentId)
+		));
+	return true;
+}
+
 // =============================================================================
 // VULNERABILITY SCAN RESULTS
 // =============================================================================

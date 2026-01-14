@@ -18,6 +18,13 @@ interface DockerTarget {
 	port?: number;
 	hawserToken?: string;
 	environmentId?: number;
+	// TLS configuration for mTLS connections
+	tls?: {
+		ca?: string;
+		cert?: string;
+		key?: string;
+		rejectUnauthorized?: boolean;
+	};
 }
 
 interface EnvironmentRow {
@@ -28,6 +35,11 @@ interface EnvironmentRow {
 	host?: string;
 	port?: number;
 	hawser_token?: string;
+	protocol?: string;
+	tls_ca?: string;
+	tls_cert?: string;
+	tls_key?: string;
+	tls_skip_verify?: boolean | number;
 }
 
 // ============ Docker Target Resolution ============
@@ -51,11 +63,23 @@ function resolveDockerTarget(
 		return { type: 'hawser-edge', environmentId: envId };
 	}
 
+	// Build TLS config if using HTTPS protocol
+	let tls: DockerTarget['tls'] | undefined;
+	if (env.protocol === 'https') {
+		tls = {
+			rejectUnauthorized: !env.tls_skip_verify
+		};
+		if (env.tls_ca) tls.ca = env.tls_ca;
+		if (env.tls_cert) tls.cert = env.tls_cert;
+		if (env.tls_key) tls.key = env.tls_key;
+	}
+
 	return {
 		type: 'tcp',
 		host: env.host || 'localhost',
 		port: env.port || 2375,
-		hawserToken: env.connection_type === 'hawser-standard' ? env.hawser_token : undefined
+		hawserToken: env.connection_type === 'hawser-standard' ? env.hawser_token : undefined,
+		tls
 	};
 }
 
@@ -254,9 +278,22 @@ async function createExecForWs(containerId: string, cmd: string[], user: string,
 		url = 'http://localhost/containers/' + containerId + '/exec';
 		fetchOpts.unix = target.socket;
 	} else {
-		url = 'http://' + target.host + ':' + target.port + '/containers/' + containerId + '/exec';
+		const protocol = target.tls ? 'https' : 'http';
+		url = protocol + '://' + target.host + ':' + target.port + '/containers/' + containerId + '/exec';
 		if (target.hawserToken) {
 			headers['X-Hawser-Token'] = target.hawserToken;
+		}
+		// Add TLS options for mTLS connections
+		if (target.tls) {
+			fetchOpts.tls = {
+				sessionTimeout: 0, // Disable TLS session caching
+				servername: target.host,
+				rejectUnauthorized: target.tls.rejectUnauthorized ?? true
+			};
+			if (target.tls.ca) fetchOpts.tls.ca = [target.tls.ca];
+			if (target.tls.cert) fetchOpts.tls.cert = [target.tls.cert];
+			if (target.tls.key) fetchOpts.tls.key = target.tls.key;
+			fetchOpts.keepalive = false;
 		}
 	}
 	const res = await fetch(url, fetchOpts);
@@ -272,9 +309,22 @@ async function resizeExecForWs(execId: string, cols: number, rows: number, targe
 			url = 'http://localhost/exec/' + execId + '/resize?h=' + rows + '&w=' + cols;
 			fetchOpts.unix = target.socket;
 		} else {
-			url = 'http://' + target.host + ':' + target.port + '/exec/' + execId + '/resize?h=' + rows + '&w=' + cols;
+			const protocol = target.tls ? 'https' : 'http';
+			url = protocol + '://' + target.host + ':' + target.port + '/exec/' + execId + '/resize?h=' + rows + '&w=' + cols;
 			if (target.hawserToken) {
 				fetchOpts.headers = { 'X-Hawser-Token': target.hawserToken };
+			}
+			// Add TLS options for mTLS connections
+			if (target.tls) {
+				fetchOpts.tls = {
+					sessionTimeout: 0,
+					servername: target.host,
+					rejectUnauthorized: target.tls.rejectUnauthorized ?? true
+				};
+				if (target.tls.ca) fetchOpts.tls.ca = [target.tls.ca];
+				if (target.tls.cert) fetchOpts.tls.cert = [target.tls.cert];
+				if (target.tls.key) fetchOpts.tls.key = target.tls.key;
+				fetchOpts.keepalive = false;
 			}
 		}
 		await fetch(url, fetchOpts);
@@ -536,7 +586,17 @@ function webSocketPlugin(): Plugin {
 							if (target.type === 'unix') {
 								dockerStream = await Bun.connect({ unix: target.socket, socket: socketHandler });
 							} else if (target.type === 'tcp') {
-								dockerStream = await Bun.connect({ hostname: target.host, port: target.port, socket: socketHandler });
+								// Build connection options with TLS if configured
+								const connectOpts: any = { hostname: target.host, port: target.port, socket: socketHandler };
+								if (target.tls) {
+									connectOpts.tls = {
+										ca: target.tls.ca,
+										cert: target.tls.cert,
+										key: target.tls.key,
+										rejectUnauthorized: target.tls.rejectUnauthorized ?? true
+									};
+								}
+								dockerStream = await Bun.connect(connectOpts);
 							}
 
 							dockerStreams.set(connId, { stream: dockerStream, execId, target, state, ws });
@@ -981,6 +1041,15 @@ export default defineConfig({
 	},
 	optimizeDeps: {
 		include: ['lucide-svelte', '@xterm/xterm', '@xterm/addon-fit']
+	},
+	resolve: {
+		dedupe: [
+			'@codemirror/state',
+			'@codemirror/view',
+			'@codemirror/language',
+			'@lezer/common',
+			'@lezer/highlight'
+		]
 	},
 	build: {
 		target: 'esnext',

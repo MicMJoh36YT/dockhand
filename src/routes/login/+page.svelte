@@ -8,6 +8,7 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Loader2, LogIn, Shield, AlertCircle, Network, User, KeyRound, TriangleAlert } from 'lucide-svelte';
 	import { authStore } from '$lib/stores/auth';
+	import { environments } from '$lib/stores/environment';
 	import * as Alert from '$lib/components/ui/alert';
 
 	interface AuthProvider {
@@ -96,7 +97,8 @@
 				return;
 			}
 
-			// Success - redirect
+			// Success - refresh environments (they were cleared during pre-login fetch) then redirect
+			await environments.refresh();
 			goto(redirectUrl);
 		} catch (e) {
 			error = 'An unexpected error occurred';

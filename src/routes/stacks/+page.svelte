@@ -1724,7 +1724,7 @@
 										<!-- Clickable ports (dedupe by publicPort for IPv4/IPv6) -->
 										{#if container.ports.length > 0}
 											{@const uniquePorts = container.ports.filter((p, i, arr) => p.publicPort && arr.findIndex(x => x.publicPort === p.publicPort) === i)}
-											{#each uniquePorts.slice(0, 2) as port}
+											{#each uniquePorts as port}
 												{@const url = getPortUrl(port.publicPort)}
 												{#if url}
 													<a
@@ -1744,9 +1744,6 @@
 													</span>
 												{/if}
 											{/each}
-											{#if uniquePorts.length > 2}
-												<span class="text-muted-foreground">+{uniquePorts.length - 2}</span>
-											{/if}
 										{/if}
 										<!-- Network with IP -->
 										{#if container.networks.length > 0}

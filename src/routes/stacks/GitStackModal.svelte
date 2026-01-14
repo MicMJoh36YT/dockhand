@@ -88,6 +88,9 @@
 	let formError = $state('');
 	let formSaving = $state(false);
 	let errors = $state<{ stackName?: string; repository?: string; repoName?: string; repoUrl?: string }>({});
+
+	// Stack name validation: must start with alphanumeric, can contain alphanumeric, hyphens, underscores
+	const STACK_NAME_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
 	let copiedWebhookUrl = $state(false);
 	let copiedWebhookSecret = $state(false);
 
@@ -309,8 +312,12 @@
 		errors = {};
 		let hasErrors = false;
 
-		if (!formStackName.trim()) {
+		const trimmedStackName = formStackName.trim();
+		if (!trimmedStackName) {
 			errors.stackName = 'Stack name is required';
+			hasErrors = true;
+		} else if (!STACK_NAME_REGEX.test(trimmedStackName)) {
+			errors.stackName = 'Stack name must start with a letter or number, and contain only letters, numbers, hyphens, and underscores';
 			hasErrors = true;
 		}
 

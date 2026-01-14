@@ -688,10 +688,9 @@ async function loginToRegistries(dockerHost?: string, logPrefix = '[Stack]'): Pr
 				}
 			);
 
-			// Write password to stdin
-			const writer = proc.stdin.getWriter();
-			await writer.write(new TextEncoder().encode(reg.password));
-			await writer.close();
+			// Write password to stdin (Bun's FileSink API)
+			proc.stdin.write(reg.password);
+			proc.stdin.end();
 
 			const exitCode = await proc.exited;
 
@@ -717,6 +716,10 @@ interface ComposeCommandOptions {
 	forceRecreate?: boolean;
 	removeVolumes?: boolean;
 	stackFiles?: Record<string, string>; // All files to send to Hawser
+	/** Working directory for compose execution (for imported stacks) */
+	workingDir?: string;
+	/** Full path to the compose file (for imported stacks, to avoid writing to internal dir) */
+	composePath?: string;
 }
 
 /**
@@ -724,6 +727,8 @@ interface ComposeCommandOptions {
  *
  * @param envVars - Non-secret environment variables (from .env file, passed for backward compat)
  * @param secretVars - Secret environment variables (injected via shell env, NEVER written to disk)
+ * @param workingDir - Optional working directory for compose execution (for imported stacks)
+ * @param customComposePath - Optional path to existing compose file (for imported stacks, skips writing)
  */
 async function executeLocalCompose(
 	operation: 'up' | 'down' | 'stop' | 'start' | 'restart' | 'pull',
@@ -734,17 +739,33 @@ async function executeLocalCompose(
 	secretVars?: Record<string, string>,
 	forceRecreate?: boolean,
 	removeVolumes?: boolean,
-	envId?: number | null
+	envId?: number | null,
+	workingDir?: string,
+	customComposePath?: string
 ): Promise<StackOperationResult> {
 	const logPrefix = `[Stack:${stackName}]`;
-	// For operations that write (up), use getStackDir; for others, try to find existing first
-	const stackDir = operation === 'up'
-		? await getStackDir(stackName, envId)
-		: (await findStackDir(stackName, envId) || await getStackDir(stackName, envId));
-	mkdirSync(stackDir, { recursive: true });
 
-	const composeFile = join(stackDir, 'docker-compose.yml');
-	await Bun.write(composeFile, composeContent);
+	// Determine working directory and compose file path
+	// For imported stacks (custom paths), use the provided workingDir and composePath
+	// For internal stacks, use the default data directory
+	let stackDir: string;
+	let composeFile: string;
+
+	if (customComposePath && workingDir) {
+		// Imported stack: use original location, don't copy files
+		stackDir = workingDir;
+		composeFile = customComposePath;
+		// Don't write to the compose file - it already exists at the custom location
+		// The user manages this file externally
+	} else {
+		// Internal stack: use default data directory
+		stackDir = operation === 'up'
+			? await getStackDir(stackName, envId)
+			: (await findStackDir(stackName, envId) || await getStackDir(stackName, envId));
+		mkdirSync(stackDir, { recursive: true });
+		composeFile = join(stackDir, 'docker-compose.yml');
+		await Bun.write(composeFile, composeContent);
+	}
 
 	// Build spawn environment:
 	// 1. Start with process.env
@@ -1042,7 +1063,7 @@ async function executeComposeCommand(
 	envVars?: Record<string, string>,
 	secretVars?: Record<string, string>
 ): Promise<StackOperationResult> {
-	const { stackName, envId, forceRecreate, removeVolumes, stackFiles } = options;
+	const { stackName, envId, forceRecreate, removeVolumes, stackFiles, workingDir, composePath } = options;
 
 	// Get environment configuration
 	const env = envId ? await getEnvironment(envId) : null;
@@ -1058,7 +1079,9 @@ async function executeComposeCommand(
 			secretVars,
 			forceRecreate,
 			removeVolumes,
-			envId
+			envId,
+			workingDir,
+			composePath
 		);
 	}
 
@@ -1089,7 +1112,9 @@ async function executeComposeCommand(
 				secretVars,
 				forceRecreate,
 				removeVolumes,
-				envId
+				envId,
+				workingDir,
+				composePath
 			);
 		}
 
@@ -1104,7 +1129,9 @@ async function executeComposeCommand(
 				secretVars,
 				forceRecreate,
 				removeVolumes,
-				envId
+				envId,
+				workingDir,
+				composePath
 			);
 	}
 }
@@ -1313,6 +1340,10 @@ export interface RequireComposeResult {
 	secretVars?: Record<string, string>;
 	needsFileLocation?: boolean;
 	error?: string;
+	/** Directory containing the compose file (for working directory) */
+	stackDir?: string;
+	/** Full path to the compose file (for imported stacks) */
+	composePath?: string;
 }
 
 /**
@@ -1400,7 +1431,14 @@ async function requireComposeFile(
 	// This ensures external edits to .env are respected during deployment
 	const envVars = { ...dbNonSecretVars, ...fileEnvVars };
 
-	return { success: true, content: composeResult.content!, envVars, secretVars };
+	return {
+		success: true,
+		content: composeResult.content!,
+		envVars,
+		secretVars,
+		stackDir: composeResult.stackDir,
+		composePath: composeResult.composePath
+	};
 }
 
 /**
@@ -1418,7 +1456,13 @@ export async function startStack(
 		return withContainerFallback(stackName, envId, 'start');
 	}
 
-	return executeComposeCommand('up', { stackName, envId }, result.content!, result.envVars, result.secretVars);
+	return executeComposeCommand(
+		'up',
+		{ stackName, envId, workingDir: result.stackDir, composePath: result.composePath },
+		result.content!,
+		result.envVars,
+		result.secretVars
+	);
 }
 
 /**
@@ -1436,7 +1480,13 @@ export async function stopStack(
 		return withContainerFallback(stackName, envId, 'stop');
 	}
 
-	return executeComposeCommand('stop', { stackName, envId }, result.content!, result.envVars, result.secretVars);
+	return executeComposeCommand(
+		'stop',
+		{ stackName, envId, workingDir: result.stackDir, composePath: result.composePath },
+		result.content!,
+		result.envVars,
+		result.secretVars
+	);
 }
 
 /**
@@ -1454,7 +1504,13 @@ export async function restartStack(
 		return withContainerFallback(stackName, envId, 'restart');
 	}
 
-	return executeComposeCommand('restart', { stackName, envId }, result.content!, result.envVars, result.secretVars);
+	return executeComposeCommand(
+		'restart',
+		{ stackName, envId, workingDir: result.stackDir, composePath: result.composePath },
+		result.content!,
+		result.envVars,
+		result.secretVars
+	);
 }
 
 /**
@@ -1473,7 +1529,13 @@ export async function downStack(
 		return withContainerFallback(stackName, envId, 'stop');
 	}
 
-	return executeComposeCommand('down', { stackName, envId, removeVolumes }, result.content!, result.envVars, result.secretVars);
+	return executeComposeCommand(
+		'down',
+		{ stackName, envId, removeVolumes, workingDir: result.stackDir, composePath: result.composePath },
+		result.content!,
+		result.envVars,
+		result.secretVars
+	);
 }
 
 /**
@@ -1495,7 +1557,12 @@ export async function removeStack(
 			const secretVars = await getSecretEnvVarsAsRecord(stackName, envId);
 			const downResult = await executeComposeCommand(
 				'down',
-				{ stackName, envId },
+				{
+					stackName,
+					envId,
+					workingDir: composeResult.stackDir,
+					composePath: composeResult.composePath
+				},
 				composeResult.content!,
 				envVars,
 				secretVars
@@ -1710,7 +1777,13 @@ export async function pullStackImages(
 		};
 	}
 
-	return executeComposeCommand('pull', { stackName, envId }, result.content!, result.envVars, result.secretVars);
+	return executeComposeCommand(
+		'pull',
+		{ stackName, envId, workingDir: result.stackDir, composePath: result.composePath },
+		result.content!,
+		result.envVars,
+		result.secretVars
+	);
 }
 
 // =============================================================================

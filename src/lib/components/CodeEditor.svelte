@@ -420,38 +420,61 @@
 	// Effect to update variable markers
 	const updateMarkersEffect = StateEffect.define<VariableMarker[]>();
 
+	// State field to store current markers (used for recalculation on doc change)
+	const currentMarkersField = StateField.define<VariableMarker[]>({
+		create() {
+			return [];
+		},
+		update(markers, tr) {
+			for (const effect of tr.effects) {
+				if (effect.is(updateMarkersEffect)) {
+					return effect.value;
+				}
+			}
+			return markers;
+		}
+	});
+
 	// State field to track variable markers (gutter)
-	// IMPORTANT: Only updates via effects, not closure reference (fixes stale closure bug)
+	// Recalculates on doc change to avoid position mapping issues
 	const variableMarkersField = StateField.define<RangeSet<GutterMarker>>({
 		create() {
-			// Start empty - markers will be pushed via effect
 			return RangeSet.empty;
 		},
 		update(markers, tr) {
+			// Check for marker updates first
 			for (const effect of tr.effects) {
 				if (effect.is(updateMarkersEffect)) {
 					return createVariableDecorations(tr.state.doc, effect.value);
 				}
 			}
-			// Don't recalculate on docChanged - wait for explicit effect from parent
+			// Recalculate on doc change using stored markers
+			if (tr.docChanged) {
+				const currentMarkers = tr.state.field(currentMarkersField);
+				return createVariableDecorations(tr.state.doc, currentMarkers);
+			}
 			return markers;
 		}
 	});
 
 	// State field to track value decorations (inline widgets)
-	// IMPORTANT: Only updates via effects, not closure reference (fixes stale closure bug)
+	// Recalculates on doc change to avoid widget duplication issues
 	const valueDecorationsField = StateField.define<DecorationSet>({
 		create() {
-			// Start empty - decorations will be pushed via effect
 			return Decoration.none;
 		},
 		update(decorations, tr) {
+			// Check for marker updates first
 			for (const effect of tr.effects) {
 				if (effect.is(updateMarkersEffect)) {
 					return createValueDecorations(tr.state.doc, effect.value);
 				}
 			}
-			// Don't recalculate on docChanged - wait for explicit effect from parent
+			// Recalculate on doc change using stored markers
+			if (tr.docChanged) {
+				const currentMarkers = tr.state.field(currentMarkersField);
+				return createValueDecorations(tr.state.doc, currentMarkers);
+			}
 			return decorations;
 		},
 		provide: f => EditorView.decorations.from(f)
@@ -647,7 +670,7 @@
 		}
 
 		// Always add variable markers gutter and value decorations (can be updated dynamically)
-		extensions.push(variableMarkersField, variableGutter, valueDecorationsField);
+		extensions.push(currentMarkersField, variableMarkersField, variableGutter, valueDecorationsField);
 
 		const state = EditorState.create({
 			doc: value,
@@ -666,14 +689,11 @@
 			// Skip onchange during programmatic value sync (only fire for user edits)
 			const lastChangingTr = trs.findLast(tr => tr.docChanged);
 			if (lastChangingTr && onchangeRef && !isSyncingExternalValue) {
-				// Defer callback to next microtask to avoid blocking input handling
-				// This allows key repeat to work properly
+				// Call synchronously to ensure parent state updates before any
+				// reactive $effect runs - this prevents race conditions on iPad Safari
+				// where paste content was being overwritten by stale external value
 				const newContent = lastChangingTr.newDoc.toString();
-				queueMicrotask(() => {
-					if (onchangeRef) {
-						onchangeRef(newContent);
-					}
-				});
+				onchangeRef(newContent);
 			}
 		};
 

